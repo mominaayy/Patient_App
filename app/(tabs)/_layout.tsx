@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { Animated, StyleSheet, Text, View } from "react-native";
 import React, { useRef } from "react";
 
@@ -21,7 +21,7 @@ const TabLayout = () => {
   };
 
   type TabIconProps = {
-    name: keyof typeof Ionicons.glyphMap;
+    name: keyof typeof MaterialIcons.glyphMap;
     focused: boolean;
     label: keyof typeof scaleValues;
   };
@@ -29,24 +29,32 @@ const TabLayout = () => {
   const TabIcon: React.FC<TabIconProps> = ({ name, focused, label }) => (
     <View style={styles.tabButton}>
       <Animated.View
-        style={{
-          transform: [{ scale: scaleValues[label] }],
-          alignItems: "center",
-          marginTop: 5, // ⬅️ Moves icon slightly down
-        }}
+        style={[
+          styles.iconContainer,
+          { 
+            transform: [{ scale: scaleValues[label] }],
+            backgroundColor: focused ? 'rgba(40, 75, 99, 0.1)' : 'transparent',
+          }
+        ]}
       >
-        <Ionicons 
+        <MaterialIcons
           name={name} 
-          size={20} // Icon size remains smaller
-          color={focused ? "#284b63" : "#B0BEC5"} 
+          size={24}
+          color={focused ? "#284b63" : "#aaa"} 
         />
-        <Text style={[
-          styles.label, 
-          { color: focused ? "#284b63" : "#B0BEC5" }
-        ]}>
-          {label.charAt(0).toUpperCase() + label.slice(1)}
-        </Text>
       </Animated.View>
+      <Text style={[
+        styles.label, 
+        { 
+          color: focused ? "#284b63" : "#aaa",
+          fontWeight: focused ? '600' : '400'
+        }
+      ]}>
+        {label === 'home' ? 'Home' : 
+         label === 'chat' ? 'Chat' : 
+         label === 'appointment' ? 'Appointments' : 
+         label === 'reminder' ? 'Reminder' : label}
+      </Text>
     </View>
   );
 
@@ -63,7 +71,7 @@ const TabLayout = () => {
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon 
-              name={focused ? "home" : "home-outline"} 
+              name="home" 
               focused={focused}
               label="home"
             />
@@ -77,7 +85,7 @@ const TabLayout = () => {
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon 
-              name={focused ? "chatbubbles" : "chatbubbles-outline"} 
+              name="chat" 
               focused={focused}
               label="chat"
             />
@@ -91,7 +99,7 @@ const TabLayout = () => {
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon 
-              name={focused ? "calendar" : "calendar-outline"} 
+              name="event" 
               focused={focused}
               label="appointment"
             />
@@ -105,7 +113,7 @@ const TabLayout = () => {
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon 
-              name={focused ? "alarm" : "alarm-outline"} 
+              name="notifications" 
               focused={focused}
               label="reminder"
             />
@@ -113,7 +121,6 @@ const TabLayout = () => {
         }}
         listeners={{ focus: () => animateIcon("reminder", true) }}
       />
-
 
       <Tabs.Screen
         name="index" 
@@ -123,37 +130,36 @@ const TabLayout = () => {
   );
 };
 
-// Styles
+// Updated styles to match doctor app
 const styles = StyleSheet.create({
-    tabBar: {
-      backgroundColor: "#ffffff",
-      height: 55,
-      borderTopWidth: 0,
-      elevation: 12,
-      shadowColor: "#284b63",
-      shadowOpacity: 0.1,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: -4 },
-      paddingHorizontal: 15,
-    },
-    tabButton: {
-      alignItems: "center", 
-      justifyContent: "center",
-      flexDirection: "column",
-      flex: 1, 
-    },
-    iconContainer: {
-      alignItems: "center", 
-      justifyContent: "center",
-    },
-    label: {
-      fontSize: 11,
-      fontWeight: "600",
-      marginTop: 2, 
-      textAlign: "center", 
-      letterSpacing: 0.2,
-    },
-  });
-
+  tabBar: {
+    backgroundColor: "#ffffff",
+    height: 60, // Optimal height without extra spacing
+    borderTopWidth: 0,
+    elevation: 12,
+    shadowColor: "#284b63",
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: -4 },
+    paddingHorizontal: 0, // Removed horizontal padding
+  },
+  tabButton: {
+    alignItems: "center", 
+    justifyContent: "center",
+    flex: 1, 
+    paddingVertical: 6,
+  },
+  iconContainer: {
+    alignItems: "center", 
+    justifyContent: "center",
+    padding: 8,
+    borderRadius: 8,
+  },
+  label: {
+    fontSize: 11,
+    marginTop: 2,
+    textAlign: "center", 
+  },
+});
 
 export default TabLayout;
