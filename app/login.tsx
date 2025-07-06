@@ -11,6 +11,8 @@ import { useAuthStore } from '../store/authStore';
 const LoginScreen = () => {
   const router = useRouter();
   const setToken = useAuthStore((state) => state.setToken);
+  const setUid = useAuthStore((state) => state.setUid);
+  const setLocalId = useAuthStore((state) => state.setLocalId);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,6 +40,26 @@ const LoginScreen = () => {
       if (result?.idToken) {
         try {
           setToken(result.idToken);
+          setUid(result.localId);
+
+          // Fetch doctor profile
+          const profileResponse = await fetch(`${API_BASE_URL}/doctor/profile/${result.localId}`, {
+            headers: {
+              Authorization: `Bearer ${result.idToken}`
+            }
+          });
+
+          const profileData = await profileResponse.json();
+
+          if (!profileResponse.ok) {
+            console.warn("Doctor profile not found:", profileData.error);
+            Alert.alert("Notice", "Login succeeded but profile was not found.");
+          } else {
+            setLocalId(profileData?.id)
+            console.log("Profile:", profileData);
+            // optionally store doctor profile in a global store here
+          }
+
           Alert.alert("Success", "Login successful!");
           router.replace("/(tabs)/home");
         } catch (innerError) {

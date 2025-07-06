@@ -6,6 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Toast from 'react-native-toast-message';
 import { CheckCircle } from 'lucide-react-native';
+import { API_BASE_URL } from "../utils/constants";
+import { useAuthStore } from '../store/authStore'; 
 
 const BookConsultation = () => {
   const router = useRouter();
@@ -72,7 +74,14 @@ const BookConsultation = () => {
     });
   };
 
-  const handleBookAppointment = () => {
+  const formatTimeForBackend = (time: Date) => {
+    const hours = String(time.getHours()).padStart(2, '0');
+    const minutes = String(time.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+
+  const handleBookAppointment = async () => {
     if (!patientName || !gender || !phone || !address || !procedure) {
       Toast.show({
         type: 'error',
@@ -82,21 +91,60 @@ const BookConsultation = () => {
       return;
     }
 
-    // Show success toast
-    Toast.show({
-      type: 'success',
-      position: 'bottom',
-      text1: 'Appointment Confirmed',
-      text2: `Your appointment with ${doctor.name} has been booked successfully!`,
-      visibilityTime: 2000,
-      autoHide: true,
-      bottomOffset: 50,
-    });
+    const token = useAuthStore.getState().token;
 
-    
-    setTimeout(() => {
-      router.replace('/home'); 
-    }, 2000);
+    // Create payload
+    const payload = {
+      doctor_id: 1,
+      patient_id: 1,
+      appointment_date: date.toISOString().split('T')[0], // format: YYYY-MM-DD
+      appointment_time: formatTimeForBackend(time), // format: HH:MM
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/appointments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // Optional: only if protected
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        Toast.show({
+          type: 'error',
+          text1: 'Booking Failed',
+          text2: result.error || 'Unable to confirm the appointment.',
+        });
+        return;
+      }
+
+      // Show success
+      Toast.show({
+        type: 'success',
+        position: 'bottom',
+        text1: 'Appointment Confirmed',
+        text2: `Your appointment with ${doctor.name} has been booked!`,
+        visibilityTime: 2000,
+        autoHide: true,
+        bottomOffset: 50,
+      });
+
+      setTimeout(() => {
+        router.replace('/home');
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error booking appointment:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Network Error',
+        text2: 'Please try again later.',
+      });
+    }
   };
 
   const renderDoctorInfo = () => (
