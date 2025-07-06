@@ -17,19 +17,15 @@ export default function IndexScreen() {
       <Text style={styles.appName}>Health Tracker</Text>
 
       {/* Login Button */}
-      <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/register')}>
+      <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>
         <Text style={styles.buttonText}>Sign In</Text>
       </TouchableOpacity>
 
       {/* Sign Up Button */}
-      <TouchableOpacity style={styles.signupButton} onPress={() => router.push('/login')}>
+      <TouchableOpacity style={styles.signupButton} onPress={() => router.push('/register')}>
         <Text style={styles.signupText}>Sign Up</Text>
       </TouchableOpacity>
 
-      {/* Guest Option */}
-      <TouchableOpacity onPress={() => router.push('/(tabs)/home')}>
-        <Text style={styles.guestText}>Continue as a guest</Text>
-      </TouchableOpacity>
     </View>
   );
 }

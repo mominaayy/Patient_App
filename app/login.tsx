@@ -1,23 +1,58 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from "react-native";
+import {
+  View, Text, TextInput, TouchableOpacity,
+  Image, StyleSheet, Alert
+} from "react-native";
 import { useRouter } from "expo-router";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import { API_BASE_URL } from "../utils/constants"; // Adjust path if needed
+import { useAuthStore } from '../store/authStore';
 
 const LoginScreen = () => {
   const router = useRouter();
+  const setToken = useAuthStore((state) => state.setToken);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSignIn = () => {
-    // Basic validation
+  const handleSignIn = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
-    
-    // Simulate successful login
-    router.replace("/(tabs)/home");
+
+    try {
+      setLoading(true);
+
+      const response = await fetch(`${API_BASE_URL}/auth/signin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const result = await response.json();
+
+      if (result?.idToken) {
+        try {
+          setToken(result.idToken);
+          Alert.alert("Success", "Login successful!");
+          router.replace("/(tabs)/home");
+        } catch (innerError) {
+          console.error("Error inside IF block:", innerError);
+          Alert.alert("Internal Error", "Something went wrong after login.");
+        }
+      } else {
+        const errorMessage = result?.error?.message || result?.error || "Login failed";
+        Alert.alert("Login Error", errorMessage);
+      }
+    } catch (error) {
+      Alert.alert("Network Error", "Could not connect to server");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -72,10 +107,10 @@ const LoginScreen = () => {
       </View>
 
       <View style={styles.utilityContainer}>
-        <TouchableOpacity style={styles.rememberMe}>
+        {/* <TouchableOpacity style={styles.rememberMe}>
           <MaterialIcons name="check-box-outline-blank" size={20} color="#607D8B" />
           <Text style={styles.utilityText}> Remember me</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity onPress={() => router.push("/forgot-password")}>
           <Text style={[styles.utilityText, styles.link]}>Forgot password?</Text>
         </TouchableOpacity>
@@ -85,8 +120,9 @@ const LoginScreen = () => {
         style={styles.primaryButton}
         onPress={handleSignIn}
         activeOpacity={0.9}
+        disabled={loading}
       >
-        <Text style={styles.primaryButtonText}>Sign In</Text>
+        <Text style={styles.primaryButtonText}>{loading ? "Signing In..." : "Sign In"}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity 
