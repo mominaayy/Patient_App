@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -45,131 +45,203 @@ const DiscountedMedicines = () => {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [cartCount, setCartCount] = useState(3);
+  const [cartCount, setCartCount] = useState(0);
+  const [cartItems, setCartItems] = useState([]);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const toastOpacity = useState(new Animated.Value(0))[0];
 
   const filteredMedicines = medicines.filter(medicine => 
     medicine.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const showToast = (message) => {
+    setToastMessage(message);
+    setToastVisible(true);
+    Animated.sequence([
+      Animated.timing(toastOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.delay(1500),
+      Animated.timing(toastOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setToastVisible(false);
+    });
+  };
+
+  const addToCart = (medicine) => {
+    const price = parseFloat(medicine.price.replace('PKR ', '').replace(/,/g, ''));
+    
+    const existingItemIndex = cartItems.findIndex(item => item.id === medicine.id);
+    
+    if (existingItemIndex !== -1) {
+      const updatedItems = [...cartItems];
+      updatedItems[existingItemIndex] = {
+        ...updatedItems[existingItemIndex],
+        quantity: updatedItems[existingItemIndex].quantity + 1
+      };
+      setCartItems(updatedItems);
+    } else {
+      setCartItems(prevItems => [
+        ...prevItems,
+        {
+          id: medicine.id,
+          name: medicine.name,
+          type: 'medicine',
+          price: price,
+          description: medicine.description,
+          quantity: 1
+        }
+      ]);
+    }
+    
+    setCartCount(prevCount => prevCount + 1);
+    showToast(`${medicine.name} added to cart!`);
+  };
+
+  const navigateToCart = () => {
+    router.push({
+      pathname: '/cart',
+      params: { cartItems: JSON.stringify(cartItems) }
+    });
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Discounted Medicines</Text>
-        <TouchableOpacity onPress={() => router.push('/cart')}>
-          <View style={styles.cartBadge}>
-            <Ionicons name="cart" size={24} color="#fff" />
-            {cartCount > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{cartCount}</Text>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="#aaa" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search medicines or health products..."
-            placeholderTextColor="#aaa"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-      </View>
-
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoriesContainer}
-      >
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={category.id}
-            style={[
-              styles.categoryButton,
-              selectedCategory === category.id && styles.selectedCategory
-            ]}
-            onPress={() => setSelectedCategory(category.id)}
-          >
-            <Text style={[
-              styles.categoryText,
-              selectedCategory === category.id && styles.selectedCategoryText
-            ]}>
-              {category.name}
-            </Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      <View style={styles.discountBanner}>
-        <View style={styles.discountContent}>
-          <Text style={styles.discountTitle}>FLAT 25% OFF</Text>
-          <Text style={styles.discountText}>On all orders above PKR 1,500</Text>
-          <Text style={styles.codeText}>Use code: HEALTH25</Text>
-        </View>
-        <Ionicons name="pricetag" size={60} color="#2c5282" />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Top Discounted Products</Text>
-        
-        {filteredMedicines.map((medicine) => (
-          <TouchableOpacity 
-            key={medicine.id}
-            style={styles.medicineCard}
-            onPress={() => router.push(`/medicine-detail/${medicine.id}`)}
-          >
-            <Ionicons name="medical" size={60} color="#3182ce" style={styles.medicineIcon} />
-            <View style={styles.medicineInfo}>
-              <Text style={styles.medicineName}>{medicine.name}</Text>
-              <Text style={styles.medicineDescription}>{medicine.description}</Text>
-              <Text style={styles.medicineQuantity}>{medicine.quantity}</Text>
-              
-              <View style={styles.priceContainer}>
-                <Text style={styles.priceText}>{medicine.price}</Text>
-                <Text style={styles.originalPrice}>{medicine.originalPrice}</Text>
-                <View style={styles.discountTag}>
-                  <Text style={styles.discountTagText}>{medicine.discount}</Text>
+          <Text style={styles.headerTitle}>Discounted Medicines</Text>
+          <TouchableOpacity onPress={navigateToCart}>
+            <View style={styles.cartBadge}>
+              <Ionicons name="cart" size={24} color="#fff" />
+              {cartCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{cartCount}</Text>
                 </View>
-              </View>
-              
-              <TouchableOpacity 
-                style={styles.addToCartButton}
-                onPress={() => setCartCount(cartCount + 1)}
-              >
-                <Text style={styles.addToCartText}>Add to Cart</Text>
-              </TouchableOpacity>
+              )}
             </View>
           </TouchableOpacity>
-        ))}
-      </View>
+        </View>
 
-      <View style={styles.deliveryBanner}>
-        <View style={styles.deliveryItem}>
-          <Ionicons name="timer" size={24} color="#3182ce" />
-          <Text style={styles.deliveryText}>90 min delivery</Text>
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
+            <Ionicons name="search" size={20} color="#aaa" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search medicines or health products..."
+              placeholderTextColor="#aaa"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
         </View>
-        <View style={styles.deliveryItem}>
-          <Ionicons name="shield-checkmark" size={24} color="#3182ce" />
-          <Text style={styles.deliveryText}>Authentic Products</Text>
-        </View>
-      </View>
 
-      <TouchableOpacity style={styles.prescriptionBanner}>
-        <Ionicons name="document-attach" size={32} color="#fff" />
-        <View style={styles.prescriptionContent}>
-          <Text style={styles.prescriptionTitle}>Upload Prescription</Text>
-          <Text style={styles.prescriptionText}>Get prescription medicines delivered</Text>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesContainer}
+        >
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category.id}
+              style={[
+                styles.categoryButton,
+                selectedCategory === category.id && styles.selectedCategory
+              ]}
+              onPress={() => setSelectedCategory(category.id)}
+            >
+              <Text style={[
+                styles.categoryText,
+                selectedCategory === category.id && styles.selectedCategoryText
+              ]}>
+                {category.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <View style={styles.discountBanner}>
+          <View style={styles.discountContent}>
+            <Text style={styles.discountTitle}>FLAT 25% OFF</Text>
+            <Text style={styles.discountText}>On all orders above PKR 1,500</Text>
+            <Text style={styles.codeText}>Use code: HEALTH25</Text>
+          </View>
+          <Ionicons name="pricetag" size={60} color="#2c5282" />
         </View>
-        <Ionicons name="arrow-forward" size={24} color="#fff" />
-      </TouchableOpacity>
-    </ScrollView>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Top Discounted Products</Text>
+          
+          {filteredMedicines.map((medicine) => (
+            <TouchableOpacity 
+              key={medicine.id}
+              style={styles.medicineCard}
+              onPress={() => router.push(`/medicine-detail/${medicine.id}`)}
+            >
+              <Ionicons name="medical" size={60} color="#3182ce" style={styles.medicineIcon} />
+              <View style={styles.medicineInfo}>
+                <Text style={styles.medicineName}>{medicine.name}</Text>
+                <Text style={styles.medicineDescription}>{medicine.description}</Text>
+                <Text style={styles.medicineQuantity}>{medicine.quantity}</Text>
+                
+                <View style={styles.priceContainer}>
+                  <Text style={styles.priceText}>{medicine.price}</Text>
+                  <Text style={styles.originalPrice}>{medicine.originalPrice}</Text>
+                  <View style={styles.discountTag}>
+                    <Text style={styles.discountTagText}>{medicine.discount}</Text>
+                  </View>
+                </View>
+                
+                <TouchableOpacity 
+                  style={styles.addToCartButton}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    addToCart(medicine);
+                  }}
+                >
+                  <Text style={styles.addToCartText}>Add to Cart</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.deliveryBanner}>
+          <View style={styles.deliveryItem}>
+            <Ionicons name="timer" size={24} color="#3182ce" />
+            <Text style={styles.deliveryText}>90 min delivery</Text>
+          </View>
+          <View style={styles.deliveryItem}>
+            <Ionicons name="shield-checkmark" size={24} color="#3182ce" />
+            <Text style={styles.deliveryText}>Authentic Products</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.prescriptionBanner}>
+          <Ionicons name="document-attach" size={32} color="#fff" />
+          <View style={styles.prescriptionContent}>
+            <Text style={styles.prescriptionTitle}>Upload Prescription</Text>
+            <Text style={styles.prescriptionText}>Get prescription medicines delivered</Text>
+          </View>
+          <Ionicons name="arrow-forward" size={24} color="#fff" />
+        </TouchableOpacity>
+      </ScrollView>
+
+      {toastVisible && (
+        <Animated.View style={[styles.toastContainer, { opacity: toastOpacity }]}>
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </Animated.View>
+      )}
+    </View>
   );
 };
 
@@ -184,7 +256,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     paddingTop: 50,
-    backgroundColor: '#284b63', // Updated to theme color
+    backgroundColor: '#284b63',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
@@ -245,7 +317,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   selectedCategory: {
-    backgroundColor: '#284b63', // Updated to theme color
+    backgroundColor: '#284b63',
   },
   selectedCategoryText: {
     color: '#fff',
@@ -349,7 +421,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   addToCartButton: {
-    backgroundColor: '#284b63', // Updated to theme color
+    backgroundColor: '#284b63',
     paddingVertical: 10,
     borderRadius: 10,
     alignItems: 'center',
@@ -381,7 +453,7 @@ const styles = StyleSheet.create({
   prescriptionBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#284b63', // Updated to theme color
+    backgroundColor: '#284b63',
     padding: 20,
     margin: 16,
     borderRadius: 15,
@@ -400,6 +472,22 @@ const styles = StyleSheet.create({
   prescriptionText: {
     fontSize: 14,
     color: '#fff',
+  },
+  toastContainer: {
+    position: 'absolute',
+    bottom: 50,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  toastText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
 

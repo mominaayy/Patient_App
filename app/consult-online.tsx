@@ -41,7 +41,7 @@ const ConsultOnline = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
 
-  const filteredDoctors = doctors.filter(doctor => 
+  const filteredDoctors = doctors.filter(doctor =>
     doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     doctor.specialty.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -120,7 +120,20 @@ const ConsultOnline = () => {
                 <Text style={styles.availabilityText}>{doctor.availability}</Text>
               </View>
               
-              <TouchableOpacity style={styles.bookButton}>
+              <TouchableOpacity
+                style={styles.bookButton}
+                onPress={() =>
+                  router.push({
+                    pathname: '/book-consultation',
+                    params: {
+                      doctorId: doctor.id,
+                      name: doctor.name,
+                      specialty: doctor.specialty,
+                      fee: doctor.fee,
+                    },
+                  })
+                }
+              >
                 <Text style={styles.bookButtonText}>Book Consultation</Text>
               </TouchableOpacity>
             </View>
@@ -132,28 +145,19 @@ const ConsultOnline = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f0f4f8',
-  },
+  container: { flex: 1, backgroundColor: '#f0f4f8' },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
     paddingTop: 50,
-    backgroundColor: '#284b63', // Updated to theme color
+    backgroundColor: '#284b63',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  searchContainer: {
-    padding: 16,
-  },
+  headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#fff' },
+  searchContainer: { padding: 16 },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -184,14 +188,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   selectedFilter: {
-    backgroundColor: '#284b63', // Updated to theme color
+    backgroundColor: '#284b63',
   },
   selectedFilterText: {
     color: '#fff',
   },
-  cardsContainer: {
-    padding: 16,
-  },
+  cardsContainer: { padding: 16 },
   card: {
     backgroundColor: '#fff',
     borderRadius: 15,
@@ -199,9 +201,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     elevation: 3,
   },
-  cardContent: {
-    padding: 15,
-  },
+  cardContent: { padding: 15 },
   doctorName: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   feeText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#284b63', // Updated to theme color
+    color: '#284b63',
   },
   availabilityText: {
     fontSize: 14,
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   bookButton: {
-    backgroundColor: '#284b63', // Updated to theme color
+    backgroundColor: '#284b63',
     paddingVertical: 10,
     borderRadius: 10,
     marginTop: 12,

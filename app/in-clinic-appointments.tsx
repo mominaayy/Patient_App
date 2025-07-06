@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
+// Updated clinic data with additional doctor
 const clinics = [
   {
     id: '1',
@@ -11,7 +12,13 @@ const clinics = [
     rating: 4.8,
     distance: '2.5 km',
     address: 'Stadium Road, Karachi',
-    availability: 'Open until 10 PM'
+    availability: 'Open until 10 PM',
+    schedule: [
+      { days: 'Mon-Thu', time: '9:00 AM - 2:00 PM' },
+      { days: 'Fri', time: '10:00 AM - 1:00 PM' },
+      { days: 'Sat', time: '11:00 AM - 4:00 PM' },
+      { days: 'Sun', time: 'Closed' }
+    ]
   },
   {
     id: '2',
@@ -20,7 +27,12 @@ const clinics = [
     rating: 4.9,
     distance: '5.7 km',
     address: 'Johar Town, Lahore',
-    availability: 'Open 24/7'
+    availability: 'Open 24/7',
+    schedule: [
+      { days: 'Mon-Fri', time: '8:00 AM - 5:00 PM' },
+      { days: 'Sat', time: '9:00 AM - 2:00 PM' },
+      { days: 'Sun', time: 'Emergency Only' }
+    ]
   },
   {
     id: '3',
@@ -29,7 +41,28 @@ const clinics = [
     rating: 4.7,
     distance: '3.2 km',
     address: 'Sector H-8/4, Islamabad',
-    availability: 'Open until 11 PM'
+    availability: 'Open until 11 PM',
+    schedule: [
+      { days: 'Mon-Wed', time: '8:30 AM - 4:30 PM' },
+      { days: 'Thu-Fri', time: '9:00 AM - 1:00 PM' },
+      { days: 'Sat', time: '10:00 AM - 3:00 PM' },
+      { days: 'Sun', time: 'Closed' }
+    ]
+  },
+  // New clinic added
+  {
+    id: '4',
+    name: 'Shaukat Khanum Hospital',
+    specialty: 'Cancer Center',
+    rating: 4.9,
+    distance: '5.7 km',
+    address: 'Johar Town, Lahore',
+    availability: 'Open 24/7',
+    schedule: [
+      { days: 'Mon-Fri', time: '8:00 AM - 5:00 PM' },
+      { days: 'Sat', time: '9:00 AM - 2:00 PM' },
+      { days: 'Sun', time: 'Emergency Only' }
+    ]
   },
 ];
 
@@ -37,6 +70,7 @@ const InClinicAppointments = () => {
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedSpecialty, setSelectedSpecialty] = useState('all');
+  const [selectedClinic, setSelectedClinic] = useState(null);
 
   const specialties = [
     'Cardiology', 'Dermatology', 'Orthopedics', 
@@ -49,6 +83,16 @@ const InClinicAppointments = () => {
       month: 'short', 
       day: 'numeric' 
     });
+  };
+
+  // Function to show availability popup
+  const showAvailability = (clinic) => {
+    setSelectedClinic(clinic);
+  };
+
+  // Function to close popup
+  const closeAvailability = () => {
+    setSelectedClinic(null);
   };
 
   return (
@@ -100,11 +144,7 @@ const InClinicAppointments = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Available Clinics</Text>
         {clinics.map((clinic) => (
-          <TouchableOpacity 
-            key={clinic.id}
-            style={styles.clinicCard}
-            onPress={() => router.push(`/clinic-detail/${clinic.id}`)}
-          >
+          <View key={clinic.id} style={styles.clinicCard}>
             <View style={styles.clinicInfo}>
               <Text style={styles.clinicName}>{clinic.name}</Text>
               <Text style={styles.clinicSpecialty}>{clinic.specialty}</Text>
@@ -123,18 +163,50 @@ const InClinicAppointments = () => {
               <Text style={styles.clinicAddress}>{clinic.address}</Text>
               <Text style={styles.clinicAvailability}>{clinic.availability}</Text>
               
-              <TouchableOpacity style={styles.viewSlotsButton}>
+              <TouchableOpacity 
+                style={styles.viewSlotsButton}
+                onPress={() => showAvailability(clinic)}
+              >
                 <Text style={styles.viewSlotsText}>View Available Slots</Text>
               </TouchableOpacity>
             </View>
-          </TouchableOpacity>
+          </View>
         ))}
       </View>
 
-      <TouchableOpacity style={styles.mapButton}>
-        <Ionicons name="map" size={20} color="#fff" />
-        <Text style={styles.mapButtonText}>View Clinics on Map</Text>
-      </TouchableOpacity>
+      {/* Availability Modal */}
+      <Modal
+        visible={selectedClinic !== null}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={closeAvailability}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            {selectedClinic && (
+              <>
+                <Text style={styles.modalTitle}>{selectedClinic.name} Availability</Text>
+                
+                <View style={styles.scheduleContainer}>
+                  {selectedClinic.schedule.map((slot, index) => (
+                    <View key={index} style={styles.scheduleRow}>
+                      <Text style={styles.scheduleDays}>{slot.days}</Text>
+                      <Text style={styles.scheduleTime}>{slot.time}</Text>
+                    </View>
+                  ))}
+                </View>
+                
+                <TouchableOpacity 
+                  style={styles.closeButton}
+                  onPress={closeAvailability}
+                >
+                  <Text style={styles.closeButtonText}>Close</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -150,7 +222,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     paddingTop: 50,
-    backgroundColor: '#284b63', // Updated to theme color
+    backgroundColor: '#284b63',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
@@ -177,7 +249,7 @@ const styles = StyleSheet.create({
   dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#284b63', // Updated to theme color
+    backgroundColor: '#284b63',
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 10,
@@ -211,7 +283,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   selectedSpecialty: {
-    backgroundColor: '#284b63', // Updated to theme color
+    backgroundColor: '#284b63',
   },
   selectedSpecialtyText: {
     color: '#fff',
@@ -273,7 +345,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   viewSlotsButton: {
-    backgroundColor: '#284b63', // Updated to theme color
+    backgroundColor: '#284b63',
     paddingVertical: 8,
     borderRadius: 8,
     marginTop: 12,
@@ -284,21 +356,62 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontSize: 14,
   },
-  mapButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  // Modal Styles
+  modalContainer: {
+    flex: 1,
     justifyContent: 'center',
-    backgroundColor: '#284b63', // Updated to theme color
-    padding: 15,
-    margin: 16,
-    borderRadius: 15,
-    elevation: 3,
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
-  mapButtonText: {
+  modalContent: {
+    backgroundColor: '#fff',
+    width: '90%',
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#284b63',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  scheduleContainer: {
+    marginBottom: 20,
+  },
+  scheduleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  scheduleDays: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#212529',
+  },
+  scheduleTime: {
+    fontSize: 16,
+    color: '#495057',
+    fontWeight: '500',
+  },
+  closeButton: {
+    backgroundColor: '#284b63',
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  closeButtonText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
-    marginLeft: 10,
   },
 });
 
