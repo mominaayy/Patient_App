@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import Toast from "react-native-toast-message";
-import { CheckCircle } from "lucide-react-native";
+import { CheckCircle } from "lucide-react";
 import { API_BASE_URL } from "../utils/constants";
-import { useAuthStore } from '../store/authStore'; 
+import { useAuthStore } from "../store/authStore";
 
 export default function PatientProfileScreen() {
   const [fullName, setFullName] = useState("");
@@ -12,10 +19,9 @@ export default function PatientProfileScreen() {
   const [phone, setPhone] = useState("");
   const [medicalCondition, setMedicalCondition] = useState("");
   const [loading, setLoading] = useState(true);
-  
+
   const token = useAuthStore.getState().token;
   const userId = useAuthStore.getState().uid;
-  
 
   useEffect(() => {
     const fetchPatientProfile = async () => {
@@ -48,7 +54,12 @@ export default function PatientProfileScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <ActivityIndicator size="large" color="#284b63" />
       </View>
     );
@@ -114,7 +125,12 @@ const toastConfig = {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  heading: { fontSize: 22, fontWeight: "bold", textAlign: "center", marginBottom: 20 },
+  heading: {
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+  },
   label: { fontSize: 14, fontWeight: "500", marginBottom: 5, color: "#333" },
   input: {
     height: 50,

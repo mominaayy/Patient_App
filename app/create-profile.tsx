@@ -1,11 +1,16 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
-import { CheckCircle } from "lucide-react-native";
+import { CheckCircle } from "lucide-react";
 import { API_BASE_URL } from "../utils/constants";
-import { useAuthStore } from '../store/authStore'; 
-
+import { useAuthStore } from "../store/authStore";
 
 export function CreatePatientProfileScreen() {
   const router = useRouter();
@@ -77,20 +82,37 @@ export function CreatePatientProfileScreen() {
       <Text style={styles.heading}>Create Your Profile</Text>
 
       <Text style={styles.label}>Full Name</Text>
-      <TextInput style={styles.input} value={fullName} onChangeText={setFullName} />
+      <TextInput
+        style={styles.input}
+        value={fullName}
+        onChangeText={setFullName}
+      />
 
       <Text style={styles.label}>Age</Text>
-      <TextInput style={styles.input} value={age} onChangeText={setAge} keyboardType="numeric" />
+      <TextInput
+        style={styles.input}
+        value={age}
+        onChangeText={setAge}
+        keyboardType="numeric"
+      />
 
       <Text style={styles.label}>Gender</Text>
       <View style={styles.genderContainer}>
         {["Male", "Female", "Other"].map((option) => (
           <TouchableOpacity
             key={option}
-            style={[styles.genderButton, gender === option && styles.selectedGender]}
+            style={[
+              styles.genderButton,
+              gender === option && styles.selectedGender,
+            ]}
             onPress={() => setGender(option)}
           >
-            <Text style={[styles.genderText, gender === option && styles.selectedText]}>
+            <Text
+              style={[
+                styles.genderText,
+                gender === option && styles.selectedText,
+              ]}
+            >
               {option}
             </Text>
           </TouchableOpacity>
@@ -98,12 +120,25 @@ export function CreatePatientProfileScreen() {
       </View>
 
       <Text style={styles.label}>Phone Number</Text>
-      <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+      <TextInput
+        style={styles.input}
+        value={phone}
+        onChangeText={setPhone}
+        keyboardType="phone-pad"
+      />
 
       <Text style={styles.label}>Medical Condition (optional)</Text>
-      <TextInput style={styles.input} value={medicalCondition} onChangeText={setMedicalCondition} multiline />
+      <TextInput
+        style={styles.input}
+        value={medicalCondition}
+        onChangeText={setMedicalCondition}
+        multiline
+      />
 
-      <TouchableOpacity style={styles.updateButton} onPress={handleCreateProfile}>
+      <TouchableOpacity
+        style={styles.updateButton}
+        onPress={handleCreateProfile}
+      >
         <Text style={styles.updateButtonText}>Create Profile</Text>
       </TouchableOpacity>
 
@@ -123,7 +158,12 @@ const toastConfig = {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  heading: { fontSize: 22, fontWeight: "bold", textAlign: "center", marginBottom: 20 },
+  heading: {
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+  },
   label: { fontSize: 14, fontWeight: "500", marginBottom: 5, color: "#333" },
   input: {
     height: 50,
@@ -181,6 +221,5 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
 });
-
 
 export default CreatePatientProfileScreen;
