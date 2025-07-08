@@ -1,53 +1,50 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-
-const doctors = [
-  {
-    id: '1',
-    name: 'Dr. Sarah Ahmed',
-    specialty: 'Cardiologist',
-    rating: 4.9,
-    experience: 12,
-    languages: ['English', 'Urdu'],
-    fee: 'PKR 1,500',
-    availability: 'Today 4:30 PM'
-  },
-  {
-    id: '2',
-    name: 'Dr. Ali Khan',
-    specialty: 'Pediatrician',
-    rating: 4.8,
-    experience: 8,
-    languages: ['English', 'Urdu', 'Punjabi'],
-    fee: 'PKR 1,200',
-    availability: 'Tomorrow 10:00 AM'
-  },
-  {
-    id: '3',
-    name: 'Dr. Fatima Zahra',
-    specialty: 'Dermatologist',
-    rating: 4.7,
-    experience: 10,
-    languages: ['English', 'Urdu'],
-    fee: 'PKR 1,800',
-    availability: 'Today 6:00 PM'
-  },
-];
+import { API_BASE_URL } from "../utils/constants"; // Adjust path if needed
+import { useAuthStore } from '../store/authStore';
 
 const ConsultOnline = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const token = useAuthStore.getState().token;
 
-  const filteredDoctors = doctors.filter(doctor =>
-    doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    doctor.specialty.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredDoctors = doctors.filter((doctor) =>
+    (doctor.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (doctor.specialization  || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/doctor/all`, {
+          headers: {
+            'Authorization': `${token}`,
+          }
+        });
+        const json = await res.json();
+        if (res.ok) {
+          setDoctors(json.doctors || []);
+        } else {
+          console.error(json.error || 'Failed to load doctors');
+        }
+      } catch (err) {
+        console.error('Error fetching doctors:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
 
   return (
     <ScrollView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
@@ -56,6 +53,7 @@ const ConsultOnline = () => {
         <View style={{ width: 24 }} />
       </View>
 
+      {/* Search */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color="#aaa" />
@@ -69,6 +67,7 @@ const ConsultOnline = () => {
         </View>
       </View>
 
+      {/* Filters */}
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
@@ -93,56 +92,49 @@ const ConsultOnline = () => {
         ))}
       </ScrollView>
 
+      {/* Doctor Cards */}
       <View style={styles.cardsContainer}>
-        {filteredDoctors.map((doctor) => (
-          <TouchableOpacity 
-            key={doctor.id}
-            style={styles.card}
-            onPress={() => router.push(`/doctor-detail/${doctor.id}`)}
-          >
-            <View style={styles.cardContent}>
-              <Text style={styles.doctorName}>{doctor.name}</Text>
-              <Text style={styles.doctorSpecialty}>{doctor.specialty}</Text>
-              
-              <View style={styles.ratingContainer}>
-                <Ionicons name="star" size={16} color="#FFC107" />
-                <Text style={styles.ratingText}>{doctor.rating} ({doctor.experience}+ years)</Text>
+        {loading ? (
+          <ActivityIndicator size="large" color="#284b63" />
+        ) : (
+          filteredDoctors.map((doctor) => (
+            <TouchableOpacity 
+              key={doctor.id}
+              style={styles.card}
+            >
+              <View style={styles.cardContent}>
+                <Text style={styles.doctorName}>{doctor.full_name}</Text>
+                <Text style={styles.doctorSpecialty}>{doctor.specialization}</Text>
+                
+                <View style={styles.feeContainer}>
+                  <Text style={styles.feeText}>Phone: {doctor.phone_number}</Text>
+                  <Text style={styles.availabilityText}>Clinic: {doctor.clinic_address}</Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.bookButton}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/book-consultation',
+                      params: {
+                        doctorId: doctor.id,
+                        name: doctor.full_name,
+                        specialty: doctor.specialization,
+                      },
+                    })
+                  }
+                >
+                  <Text style={styles.bookButtonText}>Book Consultation</Text>
+                </TouchableOpacity>
               </View>
-              
-              <View style={styles.languagesContainer}>
-                {doctor.languages.map((lang, index) => (
-                  <Text key={index} style={styles.languageTag}>{lang}</Text>
-                ))}
-              </View>
-              
-              <View style={styles.feeContainer}>
-                <Text style={styles.feeText}>{doctor.fee}</Text>
-                <Text style={styles.availabilityText}>{doctor.availability}</Text>
-              </View>
-              
-              <TouchableOpacity
-                style={styles.bookButton}
-                onPress={() =>
-                  router.push({
-                    pathname: '/book-consultation',
-                    params: {
-                      doctorId: doctor.id,
-                      name: doctor.name,
-                      specialty: doctor.specialty,
-                      fee: doctor.fee,
-                    },
-                  })
-                }
-              >
-                <Text style={styles.bookButtonText}>Book Consultation</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          ))
+        )}
       </View>
     </ScrollView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f0f4f8' },

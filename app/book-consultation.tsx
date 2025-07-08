@@ -10,18 +10,15 @@ import { API_BASE_URL } from "../utils/constants";
 import { useAuthStore } from '../store/authStore'; 
 
 const BookConsultation = () => {
+  const { doctorId, name, specialty } = useLocalSearchParams();
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { doctorId } = params;
 
   // Doctor details
   const doctor = {
-    id: '1',
-    name: 'Dr. Sarah Ahmed',
-    specialty: 'Cardiologist',
-    fee: 'PKR 1,500',
-    rating: 4.9,
-    experience: 12,
+    id: doctorId,
+    name: name,
+    specialty: specialty,
   };
 
   // Form state
@@ -92,11 +89,12 @@ const BookConsultation = () => {
     }
 
     const token = useAuthStore.getState().token;
+    const localId = useAuthStore.getState().localId;
 
     // Create payload
     const payload = {
-      doctor_id: 1,
-      patient_id: 1,
+      doctor_id: doctorId,
+      patient_id: localId,
       appointment_date: date.toISOString().split('T')[0], // format: YYYY-MM-DD
       appointment_time: formatTimeForBackend(time), // format: HH:MM
     };
@@ -156,16 +154,8 @@ const BookConsultation = () => {
       <View style={styles.doctorInfo}>
         <Text style={styles.doctorName}>{doctor.name}</Text>
         <Text style={styles.doctorSpecialty}>{doctor.specialty}</Text>
-        
-        <View style={styles.ratingContainer}>
-          <Ionicons name="star" size={16} color="#FFC107" />
-          <Text style={styles.ratingText}>{doctor.rating} ({doctor.experience}+ years)</Text>
-        </View>
       </View>
       
-      <View style={styles.feeContainer}>
-        <Text style={styles.feeText}>{doctor.fee}</Text>
-      </View>
     </View>
   );
 

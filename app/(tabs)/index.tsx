@@ -14,7 +14,7 @@ export default function IndexScreen() {
       />
 
       {/* App Name */}
-      <Text style={styles.appName}>Health Tracker</Text>
+      <Text style={styles.appName}>Health Tracker - Patient</Text>
 
       {/* Login Button */}
       <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>

@@ -43,7 +43,7 @@ const LoginScreen = () => {
           setUid(result.localId);
 
           // Fetch doctor profile
-          const profileResponse = await fetch(`${API_BASE_URL}/doctor/profile/${result.localId}`, {
+          const profileResponse = await fetch(`${API_BASE_URL}/patient/${result.localId}`, {
             headers: {
               Authorization: `Bearer ${result.idToken}`
             }
@@ -51,17 +51,18 @@ const LoginScreen = () => {
 
           const profileData = await profileResponse.json();
 
-          if (!profileResponse.ok) {
-            console.warn("Doctor profile not found:", profileData.error);
-            Alert.alert("Notice", "Login succeeded but profile was not found.");
-          } else {
-            setLocalId(profileData?.id)
-            console.log("Profile:", profileData);
-            // optionally store doctor profile in a global store here
-          }
+          if (profileResponse.ok) {
+            setLocalId(profileData?.id); // store patient DB ID
+            console.log("Profile found:", profileData);
 
-          Alert.alert("Success", "Login successful!");
-          router.replace("/(tabs)/home");
+            Alert.alert("Success", "Login successful!");
+            router.replace("/(tabs)/home"); // send to home screen
+          } else if (profileResponse.status === 404) {
+            console.log("Profile not found, redirecting to creation page.");
+            router.replace("/create-profile"); // send to profile creation screen
+          } else {
+            throw new Error(profileData?.error || "Unexpected error while fetching profile");
+          }
         } catch (innerError) {
           console.error("Error inside IF block:", innerError);
           Alert.alert("Internal Error", "Something went wrong after login.");

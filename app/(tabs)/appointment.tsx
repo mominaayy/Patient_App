@@ -7,8 +7,9 @@ const AppointmentScreen = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const token = useAuthStore.getState().token;
+  const localId = useAuthStore.getState().localId;
 
-  const patientId = 1; // Hardcoded for now
+  const patientId = localId; // Hardcoded for now
 
   useEffect(() => {
     const fetchAppointments = async () => {
