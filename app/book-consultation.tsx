@@ -15,7 +15,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Toast from "react-native-toast-message";
-import { CheckCircle } from "lucide-react";
+// import { CircleCheck } from "lucide-react";
 import { API_BASE_URL } from "../utils/constants";
 import { useAuthStore } from "../store/authStore";
 
@@ -410,7 +410,6 @@ const BookConsultation = () => {
 const toastConfig = {
   success: ({ text1, text2 }) => (
     <View style={styles.successToast}>
-      <CheckCircle size={20} color="white" />
       <View style={styles.toastTextContainer}>
         <Text style={styles.toastText1}>{text1}</Text>
         <Text style={styles.toastText2}>{text2}</Text>

@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import Toast from "react-native-toast-message";
-import { CheckCircle } from "lucide-react";
+// import { CircleCheck } from "lucide-react";
 import { API_BASE_URL } from "../utils/constants";
 import { useAuthStore } from "../store/authStore";
 
@@ -117,7 +117,6 @@ export default function PatientProfileScreen() {
 const toastConfig = {
   success: ({ text1 }) => (
     <View style={styles.successToast}>
-      <CheckCircle size={20} color="white" />
       <Text style={styles.toastText}>{text1}</Text>
     </View>
   ),
